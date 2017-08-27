@@ -4,15 +4,15 @@
 
 int main (int argc, char* argv) {
     struct Points points[3];
-
     readCoordinates(points);
-    printf("%lf\n", points[0].x);
     int collinearity = isCollinear(points);
     if (!collinearity) {
         printf("Não tem solução\n");
     } else {
-        int isCirclePoints = isCircumferencePoints(points);
-        printf("RAIO SAO IGUAIS = %d\n", isCirclePoints);
+        struct Circle circle;
+        findCircumcenter(&circle, points);
+        printf("Raio: %.3lf\n", circle.radius);
+        printf("Centro: (%.3lf, %.3lf)\n", circle.x_center, circle.y_center);
     }
     return 0;
 }
