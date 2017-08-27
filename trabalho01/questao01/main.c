@@ -1,16 +1,18 @@
 #include <stdlib.h>
 #include "input_output.h"
-#include "typedefs.h"
 #include "operations.h"
 
 int main (int argc, char* argv) {
-    double first_coordinates[2], second_coordinates[2],
-          third_coordinates[2];
+    struct Points points[3];
 
-    readCoordinates(first_coordinates, second_coordinates, third_coordinates);
-    int result = isCollinear(first_coordinates, second_coordinates, third_coordinates);
-    if (!result) {
+    readCoordinates(points);
+    printf("%lf\n", points[0].x);
+    int collinearity = isCollinear(points);
+    if (!collinearity) {
         printf("Não tem solução\n");
+    } else {
+        int isCirclePoints = isCircumferencePoints(points);
+        printf("RAIO SAO IGUAIS = %d\n", isCirclePoints);
     }
     return 0;
 }

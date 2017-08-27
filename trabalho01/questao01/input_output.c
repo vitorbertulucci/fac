@@ -1,10 +1,11 @@
 #include <stdio.h>
-#define MAX_COUNT 2
+#include "typedefs.h"
+#define POINTS 3
 
-void readCoordinates (double* first, double* second, double* third) {
+void readCoordinates(struct Points* points) {
       int i = 0;
-      scanf("%lf %lf %lf %lf %lf %lf", &first[0], &first[1], &second[0], &second[1],
-            &third[0], &third[1]);
-
+      for (i = 0; i < POINTS; i++) {
+            scanf("%lf %lf", &points[i].x, &points[i].y);
+      }
       return;
 }

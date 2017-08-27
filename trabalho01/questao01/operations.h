@@ -1,3 +1,4 @@
 #include "operations.c"
 
-int isCollinear (double* first, double* second, double* third);
+int isCollinear (struct Points* points);
+int isCircumferencePoints (struct Points* points);
