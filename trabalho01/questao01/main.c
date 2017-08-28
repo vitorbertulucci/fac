@@ -7,12 +7,11 @@ int main (int argc, char* argv) {
     readCoordinates(points);
     int collinearity = isCollinear(points);
     if (!collinearity) {
-        printf("Não tem solução\n");
+        printf("Circulo nao viavel.\n");
     } else {
         struct Circle circle;
         findCircumcenter(&circle, points);
-        printf("Raio: %.3lf\n", circle.radius);
-        printf("Centro: (%.3lf, %.3lf)\n", circle.x_center, circle.y_center);
+        printResults(circle);
     }
     return 0;
 }
