@@ -1,7 +1,6 @@
 struct Points {
     double x;
     double y;
-    double radius;
 };
 
 struct Circle {

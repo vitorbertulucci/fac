@@ -9,3 +9,9 @@ void readCoordinates(struct Points* points) {
       }
       return;
 }
+
+void printResults(struct Circle circle) {
+      printf("Raio: %.3lf.\n", circle.radius);
+      printf("Centro: (%.3lf, %.3lf).\n", circle.x_center, circle.y_center);
+      return;
+}
