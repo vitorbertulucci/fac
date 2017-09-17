@@ -46,33 +46,23 @@ eh_primo_loop:
 	beqz $t5, imprime_erro		# numero nao eh primo, entao, imprime_erro
 	addi $t4, $t4, 2		# contador incrementa de 2 em 2
  	j eh_primo_loop
-       	# for (i = 3; i < nb; i += 2, contar++)
-       	#     if (nb % i == 0)
-       	#         teste = 1;
   	
 calc_inverso:
- 	# int inv(int a){
- 	#    int x;
-  	#    for(x=1;x<=P;x++){
-    	#        if((a*x)%P==1)
-      	#	    return x;
-  	#    }
-	#}
-	bgt $t6, $s1, imprime_saida 	# x > mod 
+	bgt $t6, $s0, imprime_saida 	# se t6
 	mul $t7, $s1, $t6		# multiplica o numero pelo x e aloca em $t7
 	div $t7, $s0	 		# divide o $t7 pelo mod  
-	mfhi $t8
-	beq $t8, 1, imprime_saida	# ((num * x) % mod == 1)
+	mfhi $t8			# t8 recebe o modulo da divisão entre t7 e s0
+	beq $t8, 1, imprime_saida	# ((numero * x) % modulo == 1)
 	addi $t6, $t6, 1		# incrementa o contador
-	j calc_inverso 
+	j calc_inverso 			# refaz o loop de calc_inverso
  
 imprime_saida:
 	la $a0, string1			# armazena o endereco de memoria de string1 em $a0
 	li $v0, 4			# funcao para imprimir string
-	syscall
-	la $a0, ($t6)
-	li $v0, 1
-	syscall
+	syscall				# executa o print
+	la $a0, ($t6)			# a0 = valor em t6
+	li $v0, 1			# prepara v0 para a função de print integer
+	syscall				# executa o print
 	j end
     
 imprime_erro:
