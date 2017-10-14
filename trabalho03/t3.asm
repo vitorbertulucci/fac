@@ -2,14 +2,15 @@
 	digit:		.float	0.0			# numero a ser calculado o arcsenonumero
 	LIMIT: 		.float 	1.0			# valor maximo do mnumero
 	string_error:	.asciiz "\nValor fora do limite permitido!\n"
-	str1: 		.asciiz "\nO†arcseno†de†"
-	str2: 		.asciiz " È "
-	str3: 		.asciiz ".†Usamos†"
-	str4: 		.asciiz " termos†da†serie.\n"
-	PRECISAO: 	.float 	0.0001			# precisao para o critÈrio de parada de convergencia
+	str1: 		.asciiz "\nO arcseno de "
+	str2: 		.asciiz " eh "
+	str3: 		.asciiz ". Usamos "
+	str4: 		.asciiz " termos da serie.\n"
+	PRECISAO: 	.float 	0.01			# precisao para o critÔøΩrio de parada de convergencia
 	INICIO_SERIE: 	.word   0			# n = 0
 	resultado: 	.float  0.0			# armazena o resultado da soma dos termos da serie
 	quebra_linha: 	.asciiz	 "\n"
+	string: .asciiz "O termo da s√©rie eh: "
 .text
 main:
 	lwc1 $f31, PRECISAO			# carrega o valor de precisao e armazena em $f31 do Coproc 1
@@ -34,68 +35,74 @@ validar_limites: # ok
 	jr $ra					# retorna para onde o chamou
 	
 calc_arcsen:
-	jal calcula_dividendo			# calcula o dividendo e armazena o resultado em $f14
+	jal calcula_dividendo			# calcula o dividendo e armazena o resultado em $f14 -------> OK
 	mov.s $f12, $f14
 	li $v0, 2
 	syscall
 	la $a0, quebra_linha
 	li $v0, 4
 	syscall
-	jal calcula_divisor			# calcula o divisor e armazena em $f13
-	mov.s $f12, $f13
+	jal calcula_divisor			# calcula o divisor e armazena em $f24 -----> ok
+	mov.s $f12, $f24
 	li $v0, 2
 	syscall
 	la $a0, quebra_linha
 	li $v0, 4
 	syscall
-	div.s $f5, $f14, $f13 	 		# calcula o termo da serie
-	mov.s $f12, $f5
+	div.s $f6, $f14, $f24 	 		# calcula o termo da serie
+	mov.s $f12, $f6
 	li $v0, 2
 	syscall
 	la $a0, quebra_linha
 	li $v0, 4
 	syscall
-	add.s $f30, $f30, $f5			# soma o novo termo ao resultado ate entao da serie
-	c.le.s $f5, $f31	   		# verfica o termo eh menor ou igual a precisao
+	add.s $f30, $f30, $f6			# soma o novo termo ao resultado ate entao da serie
+	la $a0, string
+	li $v0, 4
+	syscall
+	mov.s $f12, $f30
+	li $v0, 2
+	syscall	
+	la $a0, quebra_linha
+	li $v0, 4
+	syscall
+	c.le.s $f6, $f31	   		# verfica o termo eh menor ou igual a precisao
 	bc1t imprime_saida
 	addi $s0, $s0, 1			# incrementa o n
 	j calc_arcsen
 	
 calcula_dividendo: # (2n)!.x^(2n +1) ---> OK
-	move $t4, $ra				# salva o endereÁo de ra em t4, para nao perder o endereco de retorno
-	mov.s $f10, $f29			# inicia o valor de x^(2n + 1) com o prÛprio x
+	move $t4, $ra				# salva o endereÔøΩo de ra em t4, para nao perder o endereco de retorno
+	mov.s $f10, $f29			# inicia o valor de x^(2n + 1) com o prÔøΩprio x
 	jal calcula_2n				# calcula 2n. Resultado em $s7
 	move $t0, $s7				# coloca o valor do 2n em $t0 para calcular (2n)!
-	jal recebe_numero_para_fatorial		# computa o fatorial de 2n ($t0), com o resultado em $s1
+	jal recebe_numero_para_fatorial		# computa o fatorial de 2n ($t0), com o resultado em $f16
 	addi $s6, $s7, 1			# $s6 = 2n + 1
 	jal calcula_potencia_para_x		# calcula x^(2n + 1) e armazena o valor em $f10
-	mtc1 $s1, $f11				# move o valor de $s1 para o CP1 e armazena em $f11 (2n)!
-	cvt.s.w $f11, $f11			# converte o valor de 2n! para float ($f11)
-	mul.s $f14, $f10, $f11			# resultado de (2n)!.x^(2n +1)
+	mul.s $f14, $f10, $f16			# resultado de (2n)!.x^(2n +1)
 	move $ra, $t4				# restaura o retorno para $ra
 	jr $ra					# retorna para onde o chamou
 	
-calcula_divisor: # (2^(2n)).((n!)^(2)).(2n + 1) ----> OK
-	move $t4, $ra				# salva o endereÁo de ra em t4, para nao perder o endereco de retorno
-	addi $t8, $zero, 2			# armazena o valor 2 em $t0
+calcula_divisor: # (2^(2n)).((n!)^(2)).(2n + 1) -----> OK
+	move $t4, $ra				# salva o endereÔøΩo de ra em t4, para nao perder o endereco de retorno
+	addi $t8, $zero, 2			# armazena o valor 2 em $t8
 	jal calcula_2n				# calcula 2n. Resultado em $s7
 	jal calcula_potencia_de_2n		# calcula 2^(2n) e armazena o valor em $t8
-	move $t0, $s0				# $t0 = n
-	jal recebe_numero_para_fatorial		# passa o valor de $t0 para calcular n!, deixando o resultado em $s1
-	mult $s1, $s1
-	mflo $s1
-	mult $t8, $s1				# calcula (2^(2n)).((n!)^2)
-	mflo $t8				# recebe o resultado da multiplicacao e armazena em t8
+	move $t0, $s0				# $t0 = n, para calcular o fatorial
+	jal recebe_numero_para_fatorial		# passa o valor de $t0 para calcular n!, deixando o resultado em $f16
+	mtc1 $t8, $f8
+	cvt.s.w $f8, $f8			# converte f8 para float
+	mul.s $f16, $f16, $f16			# (n!)^2
+	mul.s $f8, $f8, $f16			# f5 = (2^(2n)).((n!)^(2))
 	jal calcula_2n				# calcula 2n
 	addi $s7, $s7, 1			# 2n + 1
-	mult $t8, $s7				# multiplica t8.(2n + 1)
-	mflo $t8				# armazena o resultado em t8
-	mtc1 $t8, $f13				# joga o valor de t8 para o CP1
-	cvt.s.w $f13, $f13			# converte o valor de int para float
+	mtc1 $s7, $f22				# armazena o (2n + 1) para o CP1
+	cvt.s.w $f22, $f22			# converte para float o valor de (2n + 1)
+	mul.s $f24, $f22, $f8			# f24 = (2^(2n)).((n!)^(2)).(2n + 1), calculando o resultado do termo do divisor
 	move $ra, $t4				# restaura o retorno para $ra
 	jr $ra					# retorna para onde o chamou
 
-calcula_potencia_de_2n: # 2^(2n)
+calcula_potencia_de_2n: # 2^(2n) -----> OK
 	beq $s7, 0, retorna_1			# se n == 0, retorna o valor 1
 	beq $s7, 1, return			# se n == 1, retorna
 	addi $t9, $zero, 2			# t9 = 2
@@ -121,40 +128,26 @@ calcula_potencia_para_x:
 return:
 	jr $ra
 
-# C·lculo de fatorial retirado do link: https://www.fatalhalt.net/sites/default/files/fileuploads/factorial.s
 recebe_numero_para_fatorial:
-	addi      $sp, $sp, -12  		# alloc 12 bytes
-    	sw        $t0, 0($sp)    		# arg1: number n
-    	sw        $ra, 8($sp)    		# save program counter (PC)
-    	jal       fatorial
-    	lw        $ra, 8($sp)    		# restore program counter (PC)
-    	lw        $s1, 4($sp)    		# load the final return value
-    	addi      $sp, $sp, 12   		# dealloc 12 bytes
-    	jr $ra
- 
-fatorial:
-    	# base case
-    	lw        $t0, 0($sp)
-    	beq       $t0, 0, return1
-    	addi      $t0, $t0, -1
-    	# call factorial recursively
-    	addi      $sp, $sp, -12
-    	sw        $t0, 0($sp)
-    	sw        $ra, 8($sp)
-    	jal       fatorial
-    	lw        $ra, 8($sp)
-    	lw        $t1, 4($sp)
-    	lw        $t0, 12($sp)
-    	mul       $t2, $t1, $t0
-    	# save the product to previous function's return value
-    	sw        $t2, 16($sp)
-    	addiu     $sp, $sp, 12
-    	jr        $ra
+	move $t3, $ra				# armazena o endere√ßo de retorno da fun√ß√£o
+	mtc1 $t0, $f16				# coloco o valor do fatorial a ser calculado no registrador co CP1
+	cvt.s.w $f16, $f16			# inicia o termo do fatorial como sendo o pr√≥rprio n
+	jal fatorial				# chama a funcao fatorial e armazena o valor em $f15
+	move $ra, $t3				# restaura o valor de retorno (poderia utilizar pilha)
+	j return				# retorna
 
+fatorial:
+	beq $t0, 0, return1			# se n = 1, retorna, pois o valor √© o pr√≥prio n
+	subi $t0, $t0, 1			# decrementa o n
+	mtc1 $t0, $f18				# coloco o valor do fatorial a ser calculado no registrador co CP1
+	cvt.s.w $f18, $f18			# inicia o termo do fatorial como sendo o pr√≥rprio n
+	mul.s $f16, $f16, $f18			# f15 = f15.(n-1)
+	beq $t0, 1, return			# se n = 0, retorna 1, pois 0! = 1
+	j fatorial
+	
 return1:
-   	li        $t0, 1
-	sw        $t0, 4($sp)
-    	jr        $ra
+   	lwc1 $f16, LIMIT				# se n = 0, retorna 1.0 como resultado do fatorial
+    	j return	
 
 imprime_saida:
 	la $a0, str1
