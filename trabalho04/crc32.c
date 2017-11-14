@@ -11,19 +11,19 @@ unsigned int crc32b(unsigned char *message) {
    while (message[i] != 0) {
       byte = message[i];            // Get next byte.
       printf("CRC: %x\nByte: %x\n", crc, byte);
-      crc = crc ^ byte;
+      crc = crc ^ byte; // crc xor byte
       printf("CRC xor byte: %x\n", crc);
       for (j = 7; j >= 0; j--) {    // Do eight times.
-         mask = (crc & 1);
+         mask = (crc & 1); // crc and 1
          printf("%d mask: %x --> mask negado: %x\n ", j, mask, -mask);
-         crc = (crc >> 1);
+         crc = (crc >> 1); // shift left in crc
          printf("crc shiftleft: %x\n", crc);
-         crc = crc ^ (0xEDB88320 & -mask);
+         crc = crc ^ (0xEDB88320 & -mask); // crc xor (const and negation(mask))
          printf("%d CRC after mask: %x\n", j, crc);
       }
       i = i + 1;
    }
-   return ~crc;
+   return ~crc; // one complement of crc
 }
 
 int main (int argc, char* argv[]) {
