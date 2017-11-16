@@ -1,5 +1,5 @@
 .data
-    buffer: 	.space	16 	# limita o tamanho máximo da string de entrada para 16 bytes
+    buffer: 	.space	16 		# limita o tamanho máximo da string de entrada para 16 bytes
     str1:  	.asciiz "Digite uma string de ate 16 bytes:\n"
     str2:  	.asciiz "CRC32: "
     const: 	.word	0xEDB88320	# mascara a ser utilizada para calcular o crc32
@@ -16,27 +16,27 @@ main:
 	# e ocasiona um erro.
 	# Com isso, é necessario sempre verificar se o byte lido eh o mesmo que 0x0a, pois, com isso, sabemos que eh o final
 	# da string a ser lida.
-	la $a0, str1    # Load and print string asking for string
+	la $a0, str1	# carrega e imprime a mensagem "digite uma string..."
 	li $v0, 4
 	syscall
 	jal read_string
 	j compute_crc32
 
 read_string:
-    li $v0, 8       # take in input
-    la $a0, buffer  # load byte space into address
-    li $a1, 16      # allot the byte space for string
-    move $t0, $a0   # save string to t0
-    syscall
-    jr $ra
+    	li $v0, 8       # entrada de string
+    	la $a0, buffer  # carrega o valor que irá armazenar a string em a0
+    	li $a1, 16      
+    	move $t0, $a0	# salva a string em t0
+    	syscall
+    	jr $ra
     
 compute_crc32:
-	li $s2, 7				# variavel do contador do fora
-	lbu $t4, ($t0) 			# le o primeiro byte da string (chamaremos $t4 de byte)
+	li $s2, 7		# variavel do contador do fora
+	lbu $t4, ($t0) 		# le o primeiro byte da string (chamaremos $t4 de byte)
 	beq $t4, $t9, compute_one_complement
-	xor $s1, $t4, $s1 		# crc = crc xor byte
+	xor $s1, $t4, $s1 	# crc = crc xor byte
 	jal loop
-	add $t0, $t0, 1			# shift de 4 bits na string (para pegar o proximo caracter)
+	add $t0, $t0, 1		# shift de 4 bits na string (para pegar o proximo caracter)
 	j compute_crc32
 	
 loop:
@@ -53,23 +53,17 @@ return:
 	jr $ra
 	
 compute_one_complement:
-	not $s1, $s1
+	not $s1, $s1	# calcula o complemento de 1 do proprio s1 
 
 print_result:
-    la $a0, str2    # load and print "you wrote" string
-    li $v0, 4
-    syscall
-    move $a0, $s1
-    li $v0, 34
-    syscall
-    j end
-
-print_string:
-    la $a0, buffer  # reload byte space to primary address
-    move $a0, $t0   # primary address = t0 address (load pointer)
-    li $v0, 4       # print string
-    syscall
+    	la $a0, str2    # carrega e imprime a mensagem "crc32: "
+    	li $v0, 4	
+    	syscall
+    	move $a0, $s1
+    	li $v0, 34	# imprime integer em hexadecimal
+    	syscall
+    	j end
 
 end:
-    li $v0, 10      # end program
-    syscall
+    	li $v0, 10      # finaliza o programa
+    	syscall
